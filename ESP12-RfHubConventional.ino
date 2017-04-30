@@ -4,8 +4,9 @@
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
 
-const unsigned long devID[] = {24249122,123112,51342214}; //Name of sensor
-const unsigned long devType[] = {1,13,13,14}; //Type of sensor is button and RF server
+const unsigned int devices = 4;
+const unsigned long devID[devices] = {24249122,123112,51342214,11299241}; //Name of sensor
+const unsigned long devType[devices] = {31,38,38,42}; //Type of sensor is button and RF server
 
 const int readPin = 16; //16 for v0.1 of PWM board print
 
@@ -67,10 +68,11 @@ void setup() {
   Serial.begin(115200);
   ConnectWifi();  //Only include connection if in produduction mode
 
-  delay(2000); //Time clearance to ensure registration
+  delay(3000); //Time clearance to ensure registration
   //pinMode(indicatorPin,OUTPUT);
-  for (int i=0; i<(sizeof(devID)/sizeof(devID[0]));i++){
-    SendUdpValue(0,devID[i],devType[i]); //Register LED on server
+  for (int i=0; i<devices;i++){
+    SendUdpValue(0,devID[i],devType[i]); //Register devices on server
+    delay(100);
   }
   Serial.println("Ready");
 }
@@ -149,7 +151,7 @@ void loop() {
     bitBuffer=0;
     bitCount=0;
     //Rules for transmission
-    if (millis()-lastTriggered>500 && byteStore[0]==236 && byteStore[1]==172) {
+    if (millis()-lastTriggered>500 && byteStore[0]==236 && byteStore[1]==172) { //RF Button 1
       if (byteStore[2]==177) {
         SendUdpValue(1,devID[0],0);
       }
@@ -159,17 +161,17 @@ void loop() {
       msgFlag=true;
       lastTriggered=millis();
     }
-    else if (millis()-lastTriggered>4000 && byteStore[0]==145 && byteStore[1]==78 && byteStore[2]==179) {
+    else if (millis()-lastTriggered>4000 && byteStore[0]==145 && byteStore[1]==78 && byteStore[2]==179) { //Door sensor A
       SendUdpValue(1,devID[1],1);
       msgFlag=true;
       lastTriggered=millis();
     }
-    else if (millis()-lastTriggered>4000 && byteStore[0]==240 && byteStore[1]==203 && byteStore[2]==163) {
+    else if (millis()-lastTriggered>4000 && byteStore[0]==240 && byteStore[1]==203 && byteStore[2]==163) { //Door sensor B
       SendUdpValue(1,devID[2],1);
       msgFlag=true;
       lastTriggered=millis();
     }
-    else if (millis()-lastTriggered>4000 && byteStore[0]==38 && byteStore[1]==152 && byteStore[2]==172) {
+    else if (millis()-lastTriggered>4000 && byteStore[0]==38 && byteStore[1]==152 && byteStore[2]==172) { //Motion Sensor
       SendUdpValue(1,devID[3],1);
       msgFlag=true;
       lastTriggered=millis();
